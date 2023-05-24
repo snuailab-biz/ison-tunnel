@@ -1,0 +1,5 @@
+rtsp_ip: localhost
+rtsp_port: 1239
+stream_uri: /test
+simulator_ip : localhost
+simulator_port : 1235

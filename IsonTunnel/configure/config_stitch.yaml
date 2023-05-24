@@ -1,0 +1,4 @@
+rtsp_ip: 0.0.0.0
+stitch_port: 1028
+stitch_stream_uri: /video_stream
+version: 0.3.0
