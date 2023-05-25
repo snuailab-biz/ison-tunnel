@@ -1,5 +1,7 @@
+import sys
 from PyQt5.QtWidgets import QMainWindow, QTabWidget, QWidget, QVBoxLayout
 from IsonTunnel.ConfigGUI.module import TabInit, TabDetector, TabEvent, TabRtsp, TabSimulator, TabCalibration, TabStit
+from PyQt5.QtWidgets import QApplication
 
 class IsonWindow(QMainWindow):
     def __init__(self):
@@ -32,3 +34,13 @@ class IsonWindow(QMainWindow):
         central_widget.setLayout(vbox)
 
 
+
+
+def run_window():
+    app = QApplication(sys.argv)
+    window = IsonWindow()
+    window.show()
+    sys.exit(app.exec_())
+
+if __name__ == '__main__':
+    run_window()

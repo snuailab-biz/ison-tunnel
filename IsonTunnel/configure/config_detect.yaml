@@ -1,7 +1,7 @@
 check_frame: 5
 detect_imgsz: 416
 detect_ip: 0.0.0.0
-detect_model: configure/best_416.pt
+detect_model: best_416.pt
 detect_port: 9999
 dist_thr: 5
 image_size: '[448, 800, 3]'
@@ -9,7 +9,7 @@ life: 10
 names: '{0: ''pedestrian'', 1: ''compact'', 2: ''general'', 3: ''motorcycle'', 4:
   ''suv'', 5: ''bus'', 6: ''truck''}'
 number_of_cameras: 4
-postprocess_path: configure/field
+postprocess_path: field
 retry_time: 5
 rtsp_ip: localhost
 rtsp_port: 9999

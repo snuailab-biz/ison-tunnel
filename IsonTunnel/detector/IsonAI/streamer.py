@@ -6,11 +6,13 @@ import math
 import re
 
 from threading import Thread
+from IsonTunnel.configure import CONFIG_ROOT
+
 
 class Camera:
     def __init__(self, cam_id, image):
         self.cam_id = cam_id
-        self.cam_path = f'configure/field/cam{cam_id}'
+        self.cam_path = f'{CONFIG_ROOT}/field/cam{cam_id}'
         self.params = json.load(open(f"{self.cam_path}/params.json"))
         self.K = np.array(self.params['K'])
         self.D = np.array(self.params['D'])

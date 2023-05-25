@@ -2,20 +2,22 @@ from pathlib import Path
 import torch
 import numpy as np 
 import time
-from config import logger
+from ultralytics.nn.autobackend import AutoBackend
+from ultralytics.yolo.cfg import get_cfg
+from ultralytics.yolo.engine.results import Results
+from ultralytics.yolo.utils import DEFAULT_CFG, SETTINGS, ops, IterableSimpleNamespace, yaml_load
+from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
+from ultralytics.yolo.utils.files import increment_path
+from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
+from ultralytics.tracker import BOTSORT, BYTETracker
+
+from IsonTunnel.detector.config import logger
 
 logger_detector = logger.bind(detector="detector")
-from IsonAI.ultralytics.nn.autobackend import AutoBackend
-from IsonAI.ultralytics.yolo.cfg import get_cfg
-from IsonAI.ultralytics.yolo.engine.results import Results
-from IsonAI.ultralytics.yolo.utils import DEFAULT_CFG, SETTINGS, ops, IterableSimpleNamespace, yaml_load
-from IsonAI.ultralytics.yolo.utils.checks import check_imgsz, check_yaml
-from IsonAI.ultralytics.yolo.utils.files import increment_path
-from IsonAI.ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
-from IsonAI.ultralytics.tracker import BOTSORT, BYTETracker
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
-from IsonAI.streamer import LoadStreams
+from IsonTunnel.detector.IsonAI.streamer import LoadStreams
+from IsonTunnel.configure import CONFIG_ROOT
 
 
 class IsonPredictor:
@@ -67,7 +69,7 @@ class IsonPredictor:
     def setup_model(self, verbose=True):
         device = select_device(self.args.device, verbose=verbose)
         self.args.half &= device.type != 'cpu'  # half precision only supported on CUDA
-        self.model = AutoBackend(self.args.model,
+        self.model = AutoBackend(CONFIG_ROOT / self.args.model,
                                  device=device,
                                  dnn=self.args.dnn,
                                  data=self.args.data,

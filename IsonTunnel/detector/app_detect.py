@@ -1,7 +1,7 @@
 import sys
 from _thread import start_new_thread
 from IsonTunnel.detector.config import DEFAULT_CFG, logger
-from IsonAI import IsonPredictor, ServerIson, ServerHandler, image_queue, unity_queue
+from IsonTunnel.detector.IsonAI import IsonPredictor, ServerIson, ServerHandler, image_queue, unity_queue
 
 
 class IsonMain:
@@ -33,12 +33,12 @@ class IsonMain:
     
 
 def run():
-    try:
-        main = IsonMain(config=DEFAULT_CFG)
-        main.run()
-    except Exception as e:
-        logger.exception(e)
-        sys.exit(1)
+    # try:
+    main = IsonMain(config=DEFAULT_CFG)
+    main.run()
+    # except Exception as e:
+    #     logger.exception(e)
+    #     sys.exit(1)
 
 if __name__ == '__main__':
     run()

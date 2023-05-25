@@ -1,2 +1,3 @@
-from .app_detect import IsonMain, run
-__all__ = 'IsonMain', 'run'
+from . import app_detect
+
+__all__ = 'app_detect'
