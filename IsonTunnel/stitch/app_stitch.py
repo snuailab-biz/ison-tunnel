@@ -1,4 +1,4 @@
-from IsonTunnel.stitch.config import DEFAULT_CFG, logger
+from IsonTunnel.stitch import STITCH_CFG, LOGGER
 import cv2
 from threading import Thread
 import time
@@ -10,7 +10,6 @@ Gst.init(None)
 gi.require_version('Gst', '1.0')
 gi.require_version('GstRtspServer', '1.0')
 
-from IsonTunnel.stitch.config import logger
 from IsonTunnel.stitch.IsonStitch.camera import Camera, stitch_blending, create_outline_mask
 
 current_state = None
@@ -47,7 +46,7 @@ class IsonStitchRTSP(GstRtspServer.RTSPMediaFactory):
             if not success or self.imgs[i] is None:
                 raise ConnectionError(f'{st}Failed to read images from {s}')
             self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
-            logger.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
+            LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
             self.threads[i].start()
         
         self.cam1 = Camera(1, self.imgs[0])
@@ -115,14 +114,14 @@ class IsonStitchRTSP(GstRtspServer.RTSPMediaFactory):
         retval = src.emit('push-buffer', buf)
         if retval != Gst.FlowReturn.OK:
             current_state = Gst.State.NULL
-            logger.info(retval)
-            logger.info('The user has ended the monitoring.')
+            LOGGER.info(retval)
+            LOGGER.info('The user has ended the monitoring.')
             src.emit('end-of-stream')
         
         if self.log_count % 300 == 0:
             current_state = Gst.State.NULL
             self.log_count = 1
-            logger.info(f" [Avg] RTSP Process Time: {time.time() - st}ms")
+            LOGGER.info(f" [Avg] RTSP Process Time: {time.time() - st}ms")
 
     def do_create_element(self, _):
         return Gst.parse_launch(self.launch_string)
@@ -145,7 +144,7 @@ class GstServer(GstRtspServer.RTSPServer):
 
 def log_every_10s():
     if not current_state == Gst.State.PLAYING:
-        logger.info("The user is not monitoring the simulator.")
+        LOGGER.info("The user is not monitoring the simulator.")
     return True
 
 
@@ -153,19 +152,19 @@ def run():
     while True:
         try:
             Gst.init(None)
-            logger.info('================================================')
-            logger.info(f'Ison Stitch RTSP Streaming - version {DEFAULT_CFG.version}' )
-            logger.info('------------------------------------------------')
-            logger.info(f'IP: {DEFAULT_CFG.rtsp_ip}')
-            logger.info(f'Port: {DEFAULT_CFG.stitch_port}')
-            logger.info('================================================')
-            server = GstServer(DEFAULT_CFG)
+            LOGGER.info('================================================')
+            LOGGER.info(f'Ison Stitch RTSP Streaming - version {STITCH_CFG.version}' )
+            LOGGER.info('------------------------------------------------')
+            LOGGER.info(f'IP: {STITCH_CFG.rtsp_ip}')
+            LOGGER.info(f'Port: {STITCH_CFG.stitch_port}')
+            LOGGER.info('================================================')
+            server = GstServer(STITCH_CFG)
             loop = GLib.MainLoop()
-            logger.info("RTSP Strat ! ! !")
+            LOGGER.info("RTSP Strat ! ! !")
             GLib.timeout_add_seconds(10, log_every_10s)
             loop.run()
         except Exception as e:
-            logger.exception(e)
+            LOGGER.exception(e)
 
 if __name__ == '__main__':
     run()

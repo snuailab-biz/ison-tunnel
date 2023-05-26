@@ -11,13 +11,11 @@ from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
 from ultralytics.tracker import BOTSORT, BYTETracker
 
-from IsonTunnel.detector.config import logger
-
-logger_detector = logger.bind(detector="detector")
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
 from IsonTunnel.detector.IsonAI.streamer import LoadStreams
 from IsonTunnel.configure import CONFIG_ROOT
+from IsonTunnel.detector import LOGGER
 
 
 class IsonPredictor:
@@ -63,7 +61,7 @@ class IsonPredictor:
             tracker = TRACKER_MAP['bytetrack'](args=cfg, frame_rate=30)
             trackers.append(tracker)
         self.trackers = trackers
-        logger_detector.info('Setup Tracker')
+        LOGGER.info('Setup Tracker')
         
 
     def setup_model(self, verbose=True):
@@ -77,14 +75,14 @@ class IsonPredictor:
                                  verbose=verbose)
         self.device = device
         self.model.eval()
-        logger_detector.info('Setup model')
+        LOGGER.info('Setup model')
 
     def setup_source(self):
         self.imgsz = check_imgsz(self.args.imgsz, stride=self.model.stride, min_dim=2)  # check image size
         transforms = None
 
 
-        logger_detector.info('Setup RTSP')
+        LOGGER.info('Setup RTSP')
         self.dataset = LoadStreams(self.args.source,
                             imgsz=self.imgsz,
                             stride=self.model.stride,
@@ -255,4 +253,4 @@ class IsonPredictor:
             self.log_count += 1
             if self.log_count % 300 == 0:
                 self.log_count=1
-                logger_detector.info(f'\n [Avg] Pre-processing : {(self.dt[0].dt) * 1E3:.1f}ms, Detector model : {(self.dt[1].dt) * 1E3:.1f}ms, Post-processing : {(self.dt[2].dt) * 1E3:.1f}ms, Network : {(self.dt[3].dt) * 1E3:.1f}ms, Total : {sum([t.dt for t in self.dt]) * 1E3:.1f}ms')
+                LOGGER.info(f'\n [Avg] Pre-processing : {(self.dt[0].dt) * 1E3:.1f}ms, Detector model : {(self.dt[1].dt) * 1E3:.1f}ms, Post-processing : {(self.dt[2].dt) * 1E3:.1f}ms, Network : {(self.dt[3].dt) * 1E3:.1f}ms, Total : {sum([t.dt for t in self.dt]) * 1E3:.1f}ms')

@@ -1,8 +1,7 @@
 import numpy as np
-from IsonTunnel.eventer.config import DEFAULT_CFG
+from IsonTunnel.eventer import EVENTER_CFG as config
 import datetime
-config = DEFAULT_CFG
-from IsonTunnel.eventer.config import logger, CONFIG_ROOT
+from IsonTunnel.eventer import LOGGER
 
 state_direction = {
     1: "Left",
@@ -10,8 +9,6 @@ state_direction = {
     3: "Right",
     4: "Right",
 }
-
-
 class Car:
     def __init__(self, car_id, xywh, cam_id, cls, lane_info):
         self.cam_id = cam_id
@@ -45,7 +42,7 @@ class Car:
             5: [0, "미확인 낙하물 & 사람 발견"]
         }
 
-        logger.info("Generate {}, Cam ID : {}, Car ID : {}".format(self._cls, self.cam_id, self.car_id))
+        LOGGER.info("Generate {}, Cam ID : {}, Car ID : {}".format(self._cls, self.cam_id, self.car_id))
 
 
     def update_frame(self, xywh, cls, lane_info):
@@ -78,7 +75,6 @@ class Car:
         self.life_count = 0
         if not self._check_event_frame:
             return False
-        # self.cur_lane = self._current_lane()
         self.cur_direction = self._current_direction
 
         self.check_lane_change()
@@ -86,18 +82,9 @@ class Car:
         self.check_stop()
         self.check_speed_over()
 
-
     @property
     def _check_event_frame(self):
         return len(self.frame_bbox) == config.check_frame
-        
-    def _current_lane(self):
-        mask = bgs[self.cam_id].lanes
-        frame_array = np.asarray(self.frame_bbox)[:, :2]
-        lane_value = mask[:,frame_array[:,1], frame_array[:,0]].T
-        lane = set(np.argwhere(lane_value>0)[:,1]+1)
-        # np.all(np.diff(np.argwhere(lane_value>0)[:,1]+1) == 0) 비교프레임수가 커지면 이 방식이 더 빠름
-        return lane.pop() if len(lane) ==1 else self.init_lane
 
     @property
     def _current_direction(self):
@@ -158,7 +145,7 @@ class Car:
                 "laneInfo": str(self.cur_lane),
                 "position": self.frame_bbox[-1][:2]
             }
-            logger.info(f"ID : {self.car_id}, {self.event_state[event_type][1]}, {event_body}")
+            LOGGER.info(f"ID : {self.car_id}, {self.event_state[event_type][1]}, {event_body}")
             self.event_state[event_type][0] = 50
         else:
             self.event_state[event_type][0] -= 1

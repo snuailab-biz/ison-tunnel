@@ -3,19 +3,18 @@ import pprint
 import numpy as np
 import cv2
 from IsonTunnel.eventer.IsonEvent.event_object import Car
-from IsonTunnel.eventer.config import logger, CONFIG_ROOT, DEFAULT_CFG
+from IsonTunnel.eventer import LOGGER, EVENTER_CFG
+from IsonTunnel import CONFIG_ROOT
 
 class IsonCamera:
     def __init__(self, camera_number, names) -> None:
         self.cam_id = camera_number
-        # self.det_info = Infos(det_infos, self.orig_shape) if det_infos is not None else None  # native size boxes
         self.names = names
-        # self._keys = [k for k in (['det_info']) if getattr(self, k) is not None]
 
         self.car_object = {}
         self.frame_locate = []
 
-        self.root_path = CONFIG_ROOT / DEFAULT_CFG.postprocess_path
+        self.root_path = CONFIG_ROOT / EVENTER_CFG.postprocess_path
         self.lane1 = None
         self.lane2 = None
         self.lane3 = None
@@ -39,7 +38,7 @@ class IsonCamera:
         for diff in self.differ:
             lost = self.car_object[diff].lost
             if lost and self.car_object[diff]._check_event_frame:
-                logger.info("Delete {}, Cam ID : {}, Car ID : {}".format(self.car_object[diff]._cls, self.car_object[diff].cam_id, self.car_object[diff].car_id))
+                LOGGER.info("Delete {}, Cam ID : {}, Car ID : {}".format(self.car_object[diff]._cls, self.car_object[diff].cam_id, self.car_object[diff].car_id))
                 del self.car_object[diff]
         for inters in self.intersection:
             self.car_object[inters].event()
@@ -70,8 +69,8 @@ class IsonCamera:
 
     
     def show(self, winname):
-        cv2.namedWindow(str(winname), cv2.WINDOW_NORMAL | cv2.WINDOW_KEEPRATIO)  # allow window resize (Linux)
-        cv2.resizeWindow(str(winname), self.orig_shape[1], self.orig_shape[0])
+        # cv2.namedWindow(str(winname), cv2.WINDOW_NORMAL)  # allow window resize (Linux)
+        # cv2.resizeWindow(str(winname), self.orig_shape[1], self.orig_shape[0])
         self.draw()
         cv2.imshow(str(winname), self.orig_img)
 

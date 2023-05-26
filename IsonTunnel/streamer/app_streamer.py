@@ -1,4 +1,4 @@
-from IsonTunnel.streamer.config import DEFAULT_CFG, logger
+from IsonTunnel.streamer import STREAM_CFG, LOGGER
 from _thread import *
 import gi
 import time
@@ -30,7 +30,7 @@ class IsonRtsp(GstRtspServer.RTSPMediaFactory):
                              .format(self.img_width, self.img_height, fps)
         self.imgs, self.fps, self.frames, self.threads = [None], [None], [None], [None]
         self.log_count = 0
-        self.ison_simulator = IsonSimulator(DEFAULT_CFG.simulator_ip, DEFAULT_CFG.simulator_port, logger)
+        self.ison_simulator = IsonSimulator(STREAM_CFG.simulator_ip, STREAM_CFG.simulator_port, LOGGER)
 
 	
     def on_need_data(self, src, lenght):
@@ -52,17 +52,17 @@ class IsonRtsp(GstRtspServer.RTSPMediaFactory):
             retval = src.emit('push-buffer', buf)
             if retval != Gst.FlowReturn.OK:
                 current_state = Gst.State.NULL
-                logger.info(retval)
-                logger.info('The user has ended the monitoring.')
+                LOGGER.info(retval)
+                LOGGER.info('The user has ended the monitoring.')
                 src.emit('end-of-stream')
             
             if self.log_count % 300 == 0:
                 current_state = Gst.State.NULL
                 self.log_count = 1
-                logger.info(f" [Avg] RTSP Process Time: {time.time() - st}ms")
+                LOGGER.info(f" [Avg] RTSP Process Time: {time.time() - st}ms")
         
         except Exception as e:
-            logger.info(f'The connection to the simulator server has been lost. \n{e}')  # 로그 남기기
+            LOGGER.info(f'The connection to the simulator server has been lost. \n{e}')  # 로그 남기기
             src.emit('end-of-stream')
             self.on_error()
     
@@ -76,7 +76,7 @@ class IsonRtsp(GstRtspServer.RTSPMediaFactory):
     def do_configure(self, rtsp_media):
         self.number_frames =0
         appsrc = rtsp_media.get_element().get_child_by_name('source')
-        logger.info('Starting Rtsp streaming to user.')  # 로그 남기기
+        LOGGER.info('Starting Rtsp streaming to user.')  # 로그 남기기
         appsrc.connect('need-data', self.on_need_data)
         
 
@@ -93,29 +93,29 @@ class GstServer(GstRtspServer.RTSPServer):
 
 def log_every_10s():
     if not current_state == Gst.State.PLAYING:
-        logger.info("The user is not monitoring the simulator.")
+        LOGGER.info("The user is not monitoring the simulator.")
     return True
 
 def run():
     while True:
         try:
             Gst.init(None)
-            logger.info('================================================')
-            logger.info(f'Ison Simulator RTSP Streaming' )
-            logger.info('------------------------------------------------')
-            logger.info(f'Simulator IP: {DEFAULT_CFG.simulator_ip}')
-            logger.info(f'Simulator Port: {DEFAULT_CFG.simulator_port}')
-            logger.info(f'RTSP IP: {DEFAULT_CFG.rtsp_ip}')
-            logger.info(f'RTSP Port: {DEFAULT_CFG.rtsp_port}')
-            logger.info('================================================')
+            LOGGER.info('================================================')
+            LOGGER.info(f'Ison Simulator RTSP Streaming' )
+            LOGGER.info('------------------------------------------------')
+            LOGGER.info(f'Simulator IP: {STREAM_CFG.simulator_ip}')
+            LOGGER.info(f'Simulator Port: {STREAM_CFG.simulator_port}')
+            LOGGER.info(f'RTSP IP: {STREAM_CFG.rtsp_ip}')
+            LOGGER.info(f'RTSP Port: {STREAM_CFG.rtsp_port}')
+            LOGGER.info('================================================')
 
-            server = GstServer(DEFAULT_CFG)
+            server = GstServer(STREAM_CFG)
             loop = GLib.MainLoop()
-            logger.info("RTSP Strat ! ! !")
+            LOGGER.info("RTSP Strat ! ! !")
             GLib.timeout_add_seconds(10, log_every_10s)
             loop.run()
         except Exception as e:
-            logger.exception(e)
+            LOGGER.exception(e)
 
 
 if __name__ == '__main__':

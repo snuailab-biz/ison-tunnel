@@ -1,8 +1,7 @@
 import sys
 from _thread import start_new_thread
-from IsonTunnel.detector.config import DEFAULT_CFG, logger
+from IsonTunnel.detector import DETECTOR_CFG, LOGGER
 from IsonTunnel.detector.IsonAI import IsonPredictor, ServerIson, ServerHandler, image_queue, unity_queue
-
 
 class IsonMain:
     def __init__(self, config):
@@ -18,23 +17,23 @@ class IsonMain:
 
     def run_server(self):
         try:
-            logger.info("Detector Sever Start")
+            LOGGER.info("Detector Sever Start")
             self.server.serve_forever()
         except KeyboardInterrupt:
-            logger.info("Detector Sever Exit")
+            LOGGER.info("Detector Sever Exit")
             self.server.shutdown()
             self.server.server_close()
     
     def run(self):
-        logger.info("Run Detector")
+        LOGGER.info("Run Detector")
         self.run_detector()
-        logger.info("Run Server")
+        LOGGER.info("Run Server")
         self.run_server()
     
 
 def run():
     # try:
-    main = IsonMain(config=DEFAULT_CFG)
+    main = IsonMain(config=DETECTOR_CFG)
     main.run()
     # except Exception as e:
     #     logger.exception(e)

@@ -3,12 +3,13 @@ import socket
 import numpy as np
 import time
 from IsonTunnel.eventer.IsonEvent import IsonCamera
-from IsonTunnel.eventer.config import logger, log_exception, DEFAULT_CFG
+
+from IsonTunnel.eventer import EVENTER_CFG, LOGGER
 import cv2
 
 
 class IsonClient:
-    @log_exception(logger, level="CRITICAL", message="IP : {}, PORT : {}".format(DEFAULT_CFG.detect_ip, DEFAULT_CFG.detect_port))
+    @LOGGER.log_exception(level="CRITICAL", message="IP : {}, PORT : {}".format(EVENTER_CFG.detect_ip, EVENTER_CFG.detect_port))
     def __init__(self, config):
         self.output_imgsz = config.image_size
         self.show=config.show
@@ -19,10 +20,10 @@ class IsonClient:
                 # self.client_socket.connect((config.detect_ip, config.detect_port)) 
                 self.client_socket.connect((config.detect_ip, config.detect_port)) 
                 self.client_socket.send('ISON'.encode()) 
-                logger.info(f"Connection Detector Server. IP : {config.detect_ip} Port : {config.detect_port}.")
+                LOGGER.info(f"Connection Detector Server. IP : {config.detect_ip} Port : {config.detect_port}.")
                 break
             except ConnectionRefusedError:
-                logger.warning(f"Connection Refused. retrying in {config.retry_time} seconds...")
+                LOGGER.warning(f"Connection Refused. retrying in {config.retry_time} seconds...")
                 time.sleep(config.retry_time)
             
         self.setup_camera(config)
@@ -38,7 +39,7 @@ class IsonClient:
             # time.sleep(delay)
             if self.log_count % 300 == 0:
                 self.log_count = 0
-                logger.info(f"\n [Avg] Byte Receive and processing Time, {time.time() - st}ms")
+                LOGGER.info(f"\n [Avg] Byte Receive and processing Time, {time.time() - st}ms")
             st = time.time()
     
     def event_process(self):
@@ -93,7 +94,7 @@ class IsonClient:
 
 def run():
     # try:
-    client = IsonClient(config=DEFAULT_CFG)
+    client = IsonClient(config=EVENTER_CFG)
     client.run()
     # except Exception as e:
     #     logger.exception(e)
