@@ -1,0 +1,11 @@
+tqdm
+lap
+thop
+pandas
+scikit-learn
+opencv-python
+pyyaml
+psutil
+requests
+matplotlib
+loguru
