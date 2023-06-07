@@ -26,13 +26,26 @@ class IsonCamera:
         image_lst = ['lane1.jpg', 'lane2.jpg', 'lane3.jpg', 'lane4.jpg']
         imgs = [f"{path}/{img}" for img in image_lst]
         self.lane_mask_load(imgs)
+        cv2.namedWindow(str(2), cv2.WINDOW_AUTOSIZE)
+        cv2.resizeWindow(str(2), 800, 448)
+        cv2.moveWindow(str(2), 50, 300) 
+        cv2.namedWindow(str(3), cv2.WINDOW_AUTOSIZE)
+        cv2.resizeWindow(str(3), 800, 448)
+        cv2.moveWindow(str(3), 850, 300) 
+        cv2.namedWindow(str(4), cv2.WINDOW_AUTOSIZE)
+        cv2.resizeWindow(str(4), 800, 448)
+        cv2.moveWindow(str(4), 1650, 300) 
+        cv2.namedWindow(str(1), cv2.WINDOW_AUTOSIZE)
+        cv2.resizeWindow(str(1), 800, 448)
+        cv2.moveWindow(str(1), 2400, 300) 
 
     def event_update(self): # 생성과 소멸
         for i, track_id in enumerate(self.id):
+            track_id = 1
             if track_id in list(self.car_object.keys()):
-                self.car_object[track_id].update_frame(self.xywh[i], self.cls[i], self.lane_info[i])
+                self.car_object[track_id].update_frame(self.xywh[i], 4, self.lane_info[i])
             else:
-                self.car_object[track_id] = Car(track_id, self.xywh[i], self.cam_id, self.cls[i], self.lane_info[i])
+                self.car_object[track_id] = Car(track_id, self.xywh[i], self.cam_id, 4, self.lane_info[i])
     
     def event(self):
         for diff in self.differ:
@@ -69,10 +82,13 @@ class IsonCamera:
 
     
     def show(self, winname):
-        # cv2.namedWindow(str(winname), cv2.WINDOW_NORMAL)  # allow window resize (Linux)
         # cv2.resizeWindow(str(winname), self.orig_shape[1], self.orig_shape[0])
         self.draw()
         cv2.imshow(str(winname), self.orig_img)
+        # if winname==str(3):
+        #     cv2.moveWindow(winname, 3600, 100) 
+        # if winname==str(4):
+        #     cv2.moveWindow(winname, 4400, 100) 
 
     def draw(self):
         for id, xywh, cls in zip(self.id, self.xywh, self.cls):
@@ -88,7 +104,12 @@ class IsonCamera:
     
     @property
     def id(self):
-        return self.det_info[:, 0]
+        if self.det_info[:,0].any():
+            return np.array([1]* len(self.det_info[:,0]))
+
+        else:
+            return self.det_info[:, 0]
+        # return np.array([1])
 
     @property
     def xywh(self):
@@ -96,88 +117,16 @@ class IsonCamera:
 
     @property
     def cls(self):
-        return self.det_info[:, 6]
+        if self.det_info[:, 6].any():
+            return np.array([4] * len(self.det_info[:, 6]))
+        else:
+            return self.det_info[:, 6]
+        # return np.array([4])
 
     @property
     def lane_info(self):
         frame_array = np.asarray(self.xywh)[:, :2]
-        lane_value = self.lane_masks[:,frame_array[:,1], frame_array[:,0]].T
+        lane_value = self.lane_masks[:,frame_array[:,1]+20, frame_array[:,0]].T
         self.lane = np.argwhere(lane_value>0)[:,1]+1
         # np.all(np.diff(np.argwhere(lane_value>0)[:,1]+1) == 0) 비교프레임수가 커지면 이 방식이 더 빠름
         return self.lane
-
-# class Infos:
-#     def __init__(self, det_info, orig_shape) -> None:
-#         if det_info.ndim == 1:
-#             det_info = det_info[None, :]
-#         n = det_info.shape[-1]
-#         assert n in (7, 8), f'expected `n` in [7, 8], but got {n}'  # xyxy, (track_id), conf, cls
-#         # TODO
-#         self.det_info = det_info
-#         self.orig_shape = np.asarray(orig_shape)
-    
-#     @property
-#     def lane_info(self):
-#         mask = self.lane_masks
-#         frame_array = np.asarray(self.frame_bbox)[:, :2]
-#         lane_value = mask[:,frame_array[:,1], frame_array[:,0]].T
-#         lane = set(np.argwhere(lane_value>0)[:,1]+1)
-#         # np.all(np.diff(np.argwhere(lane_value>0)[:,1]+1) == 0) 비교프레임수가 커지면 이 방식이 더 빠름
-#         return lane.pop() if len(lane) ==1 else self.init_lane
-
-#     @property
-#     def id(self):
-#         return self.det_info[:, 0]
-
-#     @property
-#     def xywh(self):
-#         return self.det_info[:, 1:5]
-        
-#     @property
-#     def current_time(self):
-#         return self.det_info[:, 5]
-
-#     @property
-#     def cls(self):
-#         return self.det_info[:, 6]
-        
-#     @property
-#     def cam_id(self):
-#         return self.det_info[:, 7]
-
-
-#     @property
-#     @lru_cache(maxsize=2)
-#     def xyxyn(self):
-#         return self.xyxy / self.orig_shape[[1, 0, 1, 0]]
-
-#     def numpy(self):
-#         return Infos(self.det_info.numpy(), self.orig_shape)
-
-#     @property
-#     def shape(self):
-#         return self.det_info.shape
-
-#     @property
-#     def data(self):
-#         return self.det_info
-
-#     def __len__(self):  # override len(results)
-#         return len(self.det_info)
-
-#     def __str__(self):
-#         return self.det_info.__str__()
-
-#     def __repr__(self):
-#         return (f'{self.__class__.__module__}.{self.__class__.__name__}\n'
-#                 f'type:  {self.det_info.__class__.__module__}.{self.boxes.__class__.__name__}\n'
-#                 f'shape: {self.det_info.shape}\n'
-#                 f'dtype: {self.det_info.dtype}\n'
-#                 f'{self.det_info.__repr__()}')
-
-#     def __getitem__(self, idx):
-#         return Infos(self.boxes[idx], self.orig_shape)
-
-#     def __getattr__(self, attr):
-#         name = self.__class__.__name__
-#         raise AttributeError(f"'{name}' object has no attribute '{attr}'. See valid attributes below.\n{self.__doc__}")

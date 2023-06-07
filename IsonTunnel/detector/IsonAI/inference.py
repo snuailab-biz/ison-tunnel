@@ -13,7 +13,7 @@ from ultralytics.tracker import BOTSORT, BYTETracker
 
 TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
-from IsonTunnel.detector.IsonAI.streamer import LoadStreams
+from IsonTunnel.detector.IsonAI.streamer import LoadStreams, VideoStream
 from IsonTunnel.configure import CONFIG_ROOT
 from IsonTunnel.detector import LOGGER
 
@@ -40,6 +40,7 @@ class IsonPredictor:
         self.batch = None
         self.sync = 0
         self.log_count = 0
+        self.i = 0
 
         if self.args.verbose or self.args.save or self.args.save_txt or self.args.show:
             self.vis = True
@@ -83,7 +84,8 @@ class IsonPredictor:
 
 
         LOGGER.info('Setup RTSP')
-        self.dataset = LoadStreams(self.args.source,
+
+        self.dataset = VideoStream(self.args.source,
                             imgsz=self.imgsz,
                             stride=self.model.stride,
                             auto=self.model.pt,
@@ -176,6 +178,10 @@ class IsonPredictor:
             batch_lst.append([info_result, result.orig_img])
         
         send_bytes = self.send_server(batch_lst)
+        with open(f'/home/ljj/data/ison/old/ison_raw/video/byte3/data{self.i}.bin', 'wb') as f:
+            f.write(send_bytes)
+            self.i+=1
+
         
         return send_bytes
 
@@ -240,12 +246,12 @@ class IsonPredictor:
             with self.dt[3]:
                 self.sync+=1
                 image_bytes = self.network(self.results)
-                if not image_queue.full():
-                    image_queue.put(image_bytes)
+                # if not image_queue.full():
+                #     image_queue.put(image_bytes)
 
-                unity_bytes = self.send_unity(self.results)
-                if not unity_queue.full():
-                    unity_queue.put(unity_bytes)
+                # unity_bytes = self.send_unity(self.results)
+                # if not unity_queue.full():
+                #     unity_queue.put(unity_bytes)
 
 
         # #     # Print time (inference-only)

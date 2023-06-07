@@ -16,3 +16,4 @@ save: False
 save_path: None
 show: True
 stop_life: 60
+reverse_life: 5

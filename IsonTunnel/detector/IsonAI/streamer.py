@@ -41,6 +41,100 @@ class Camera:
         transform_img = cv2.warpAffine(undistorted_img, self.matrix, (w, h))
         return transform_img
 
+class VideoStream:
+    # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
+    def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
+        torch.backends.cudnn.benchmark = True  # faster for fixed-size inference
+        self.mode = 'video'
+        self.imgsz = imgsz
+        self.stride = stride
+        self.vid_stride = vid_stride  # video frame-rate stride
+        # sources = Path(sources).read_text().rsplit() if os.path.isfile(sources) else [sources]
+        sources = ['/home/ljj/workspace/ison-tunnel/output_video1.mp4',
+                    '/home/ljj/workspace/ison-tunnel/output_video2.mp4',
+                    '/home/ljj/workspace/ison-tunnel/output_video3.mp4',
+                    '/home/ljj/workspace/ison-tunnel/output_video4.mp4',
+                   ]
+        n = len(sources)
+        self.sources = [clean_str(x) for x in sources]  # clean source names for later
+        self.imgs, self.fps, self.frames, self.threads = [None] * n, [0] * n, [0] * n, [None] * n
+        self.cams = []
+        for i, s in enumerate(sources):  # index, source
+            # Start thread to read frames from video stream
+            st = f'{i + 1}/{n}: {s}... '
+            s = eval(s) if s.isnumeric() else s  # i.e. s = '0' local webcam
+            cap = cv2.VideoCapture(s)
+            if not cap.isOpened():
+                raise ConnectionError(f'{st}Failed to open {s}')
+            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            fps = cap.get(cv2.CAP_PROP_FPS)  # warning: may return 0 or nan
+            self.frames[i] = max(int(cap.get(cv2.CAP_PROP_FRAME_COUNT)), 0) or float('inf')  # infinite stream fallback
+            self.fps[i] = max((fps if math.isfinite(fps) else 0) % 100, 0) or 30  # 30 FPS fallback
+            self.cams.append(Camera(i+1, cap.read()[1]))
+
+            success, self.imgs[i] = cap.read()  # guarantee first frame
+            if not success or self.imgs[i] is None:
+                raise ConnectionError(f'{st}Failed to read images from {s}')
+            self.threads[i] = Thread(target=self.update, args=([i, cap, s]), daemon=True)
+            # LOGGER.info(f'{st}Success ✅ ({self.frames[i]} frames of shape {w}x{h} at {self.fps[i]:.2f} FPS)')
+            self.threads[i].start()
+        # LOGGER.info('')  # newline
+
+        # check for common shapes
+        s = np.stack([LetterBox(imgsz, auto, stride=stride)(image=x).shape for x in self.imgs])
+        self.rect = np.unique(s, axis=0).shape[0] == 1  # rect inference if all shapes equal
+        self.auto = auto and self.rect
+        self.transforms = transforms  # optional
+        self.bs = self.__len__()
+        
+
+    def update(self, i, cap, stream):
+        # Read stream `i` frames in daemon thread
+        n, f = 0, self.frames[i]  # frame number, frame array
+        while cap.isOpened() and n < f:
+            n += 1
+            cap.grab()  # .read() = .grab() followed by .retrieve()
+            if n % self.vid_stride == 0:
+                success, im = cap.retrieve()
+                if success:
+                    res =  self.cams[i].transform_calib(im)
+                    res = cv2.resize(res, (800, 448), interpolation=cv2.INTER_LINEAR)
+                    self.imgs[i] = res
+                else:
+                    self.imgs[i] = np.zeros_like(self.imgs[i])
+                    cap.open(stream)  # re-open stream if signal was lost
+
+    def __iter__(self):
+        self.count = -1
+        return self
+
+    def __next__(self):
+        self.count += 1
+        if not all(x.is_alive() for x in self.threads) or cv2.waitKey(1) == ord('q'):  # q to quit
+            cv2.destroyAllWindows()
+            raise StopIteration
+
+        im0 = self.imgs.copy()
+        # cv2.imshow(f'asd', im0[0])
+        # cv2.imshow(f'as', im0[1])
+        # cv2.imshow(f'ad', im0[2])
+        # cv2.imshow(f'sd', im0[3])
+        # cv2.waitKey(1)
+        
+        if self.transforms:
+            im = np.stack([self.transforms(x) for x in im0])  # transforms
+        else:
+            im = np.stack([LetterBox(self.imgsz, self.auto, stride=self.stride)(image=x) for x in im0])
+            im = im[..., ::-1].transpose((0, 3, 1, 2))  # BGR to RGB, BHWC to BCHW
+            im = np.ascontiguousarray(im)  # contiguous
+
+
+        return self.sources, im, im0, None, ''
+
+    def __len__(self):
+        return len(self.sources)  # 1E12 frames = 32 streams at 30 FPS for 30 years
+
 class LoadStreams:
     # YOLOv8 streamloader, i.e. `yolo predict source='rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP streams`
     def __init__(self, sources='file.streams', imgsz=640, stride=32, auto=True, transforms=None, vid_stride=1):
@@ -82,6 +176,7 @@ class LoadStreams:
         self.auto = auto and self.rect
         self.transforms = transforms  # optional
         self.bs = self.__len__()
+        
 
     def update(self, i, cap, stream):
         # Read stream `i` frames in daemon thread

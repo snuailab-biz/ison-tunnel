@@ -34,6 +34,7 @@ class Car:
         self.check_delete = False
         self.life_count = 0
         self.stop_count = 0
+        self.reverse_count = 0
         self.event_state = {
             1: [0, "역주행"],
             2: [0, "과속"],
@@ -52,6 +53,8 @@ class Car:
         self.frame_bbox.append([x,y+int(h/5),w,h])
         self.position = xywh[0], xywh[1]
         self.lane_infos.append(lane_info)
+        if len(self.lane_infos) > 5:
+            del self.lane_infos[0]
 
         # if self._check_event_frame and not self.init_lane and not self.init_direction:
         #     self.init_status(lane_masks)
@@ -90,17 +93,19 @@ class Car:
     def _current_direction(self):
         frame_array = np.asarray(self.frame_bbox)[:, :1]
         direct = frame_array[-1] - frame_array[:-1]
-        # frame_array[-1] - frame_array[::3]
-
         dist_x = np.sum(direct)/ len(direct)
-        if dist_x < config.dist_thr*-1:
-            current_direction = "Left"
-        elif dist_x > config.dist_thr:
-            current_direction = "Right"
+        if np.abs(dist_x)>config.dist_thr:
+            d = np.clip(np.diff(frame_array[:], axis=0), -1, 1).sum()
+            if d < 0:
+                self.current_direction = "Left"
+            elif d > 0:
+                self.current_direction = "Right"
+            else: 
+                self.current_direction = self.current_direction
         else:
-            current_direction = 'Stop'
+            self.current_direction = 'Stop'
 
-        return current_direction
+        return self.current_direction
 
     def check_stop(self):
         if self.cur_direction == 'Stop':
@@ -111,6 +116,7 @@ class Car:
         if self.stop_count > config.stop_life:
             self.stop_state = True
             self.send_event(3)
+            self.stop_count = 0
         else:
             self.stop_state = False
 
@@ -118,11 +124,15 @@ class Car:
         if self.cur_direction in ['Stop', self.init_direction]:
             self.reverse_state = False
         else:
-            self.send_event(1)
-            self.reverse_state = True
+            self.reverse_count+=1
+            if self.reverse_count > config.reverse_life:
+                self.send_event(1)
+                self.reverse_state = True
+                self.reverse_count = 0
 
     def check_lane_change(self):
-        if all(self.lane_infos):
+
+        if all(self.lane_infos == self.lane_infos[0]):
             self.lane_state = False
         else:
             self.lane_state = True
@@ -142,10 +152,10 @@ class Car:
                 "cam": 'cam'+str(self.cam_id),
                 "camHls": "cam URI",
                 "date": now.strftime("%Y%m%d-%H:%M:%S.%f"),
-                "laneInfo": str(self.cur_lane),
+                "laneInfo": str(self.lane_infos[-1]),
                 "position": self.frame_bbox[-1][:2]
             }
-            LOGGER.info(f"ID : {self.car_id}, {self.event_state[event_type][1]}, {event_body}")
+            LOGGER.warning(f"ID : {self.car_id}, {self.event_state[event_type][1]}, {event_body}")
             self.event_state[event_type][0] = 50
         else:
             self.event_state[event_type][0] -= 1
