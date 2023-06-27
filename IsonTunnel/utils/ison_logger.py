@@ -17,6 +17,15 @@ class IsonLogger:
     def info(self, text):
         self.logger.info(text)
 
+    def warning(self, text):
+        self.logger.warning(text)
+
+    def error(self, text):
+        self.logger.error(text)
+
+    def critical(self, text):
+        self.logger.critical(text)
+
     def log_exception(self, level, message):
         def decorator(func):
             def wrapper(*args, **kwargs):

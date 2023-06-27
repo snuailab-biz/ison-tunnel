@@ -61,7 +61,7 @@ class TabStit(QWidget, Dialog):
                 break
 
     def stitch(self):
-        image_resize = (1000,448)
+        image_resize = (1000,798)
         stitch_offset = 100
         mask=self.create_outline_mask(image_size=image_resize, offset=stitch_offset)
         inv_mask = 1.0-mask

@@ -47,8 +47,6 @@ class StitchProcess:
         self.theta_unit1 = 0.1
         self.theta_unit2 = 1.0
 
-        self.cross_points = []
-
     def save_stitch_config(self):
         save_dict = self.params
         save_dict['left_point'] = self.cross_point_left
@@ -209,6 +207,7 @@ class StitchProcess:
         left_len = len(self.cross_point_left);
         right_len = len(self.cross_point_right);
         img_h, img_w = self.transform_img.shape[:2];
+        img_h = 800
         if(left_len!=right_len):
             print("problem left_len != right_len");
             return None;

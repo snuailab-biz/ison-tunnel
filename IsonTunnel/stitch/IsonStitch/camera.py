@@ -40,6 +40,7 @@ class Camera:
         left_len = len(self.cross_point_left);
         right_len = len(self.cross_point_right);
         img_h, img_w = image.shape[:2];
+        img_h = 800
         if(left_len!=right_len):
             print("problem left_len != right_len");
             return None;

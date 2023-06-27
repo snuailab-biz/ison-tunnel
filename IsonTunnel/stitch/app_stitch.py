@@ -17,7 +17,7 @@ class IsonStitchRTSP(GstRtspServer.RTSPMediaFactory):
     def __init__(self, config, **properties):
         super(IsonStitchRTSP, self).__init__(**properties)
         self.img_width = 3200;#self.img_width = 5120
-        self.img_height = 448;#self.img_height = 1080
+        self.img_height = 798;#self.img_height = 1080
         self.stat = True
         self.started = False
         self.number_frames = 0
@@ -56,7 +56,7 @@ class IsonStitchRTSP(GstRtspServer.RTSPMediaFactory):
 
         self.log_count = 0
 
-        image_resize = (800,448)
+        image_resize = (800,798)
         stitch_offset = 100
         self.mask = create_outline_mask(image_size=image_resize, offset=stitch_offset)
         self.inv_mask = 1.0-self.mask

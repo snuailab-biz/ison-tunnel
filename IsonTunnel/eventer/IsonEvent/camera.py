@@ -21,6 +21,7 @@ class IsonCamera:
         self.lane4 = None
         self.speed = None
         self.lane_masks = []
+        self.track_id = []
 
         path = f"{self.root_path}/cam{str(self.cam_id+1)}"
         image_lst = ['lane1.jpg', 'lane2.jpg', 'lane3.jpg', 'lane4.jpg']

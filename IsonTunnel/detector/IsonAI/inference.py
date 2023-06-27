@@ -9,13 +9,14 @@ from ultralytics.yolo.utils import DEFAULT_CFG, SETTINGS, ops, IterableSimpleNam
 from ultralytics.yolo.utils.checks import check_imgsz, check_yaml
 from ultralytics.yolo.utils.files import increment_path
 from ultralytics.yolo.utils.torch_utils import select_device, smart_inference_mode
-from ultralytics.tracker import BOTSORT, BYTETracker
 
-TRACKER_MAP = {'bytetrack': BYTETracker, 'botsort': BOTSORT}
 
+from IsonTunnel.detector.IsonAI.tracker import BYTETracker
 from IsonTunnel.detector.IsonAI.streamer import LoadStreams
 from IsonTunnel.configure import CONFIG_ROOT
 from IsonTunnel.detector import LOGGER
+
+TRACKER_MAP = {'bytetrack': BYTETracker}
 
 
 class IsonPredictor:
@@ -54,11 +55,12 @@ class IsonPredictor:
     def setup_tracker(self):
         tracker = check_yaml(self.args.tracker)
         cfg = IterableSimpleNamespace(**yaml_load(tracker))
+        cfg.with_reid = True
         assert cfg.tracker_type in ['bytetrack', 'botsort'], \
             f"Only support 'bytetrack' and 'botsort' for now, but got '{cfg.tracker_type}'"
         trackers = []
-        for _ in range(self.dataset.bs):
-            tracker = TRACKER_MAP['bytetrack'](args=cfg, frame_rate=30)
+        for i in range(self.dataset.bs):
+            tracker = TRACKER_MAP['bytetrack'](args=cfg, frame_rate=30, idx=i)
             trackers.append(tracker)
         self.trackers = trackers
         LOGGER.info('Setup Tracker')
