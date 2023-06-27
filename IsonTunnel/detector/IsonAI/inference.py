@@ -240,13 +240,13 @@ class IsonPredictor:
                 self.on_predict_postprocess_end()
             
             with self.dt[3]:
-                self.sync+=1
-                image_bytes = self.network(self.results)
                 if not image_queue.full():
+                    image_bytes = self.network(self.results)
                     image_queue.put(image_bytes)
 
-                unity_bytes = self.send_unity(self.results)
                 if not unity_queue.full():
+                    self.sync+=1
+                    unity_bytes = self.send_unity(self.results)
                     unity_queue.put(unity_bytes)
 
 

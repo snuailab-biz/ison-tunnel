@@ -1,8 +1,8 @@
 import socketserver
 import threading
 from queue import Queue
-image_queue = Queue(100)
-unity_queue = Queue(100)
+image_queue = Queue(1)
+unity_queue = Queue(1)
 lock = threading.Lock()
 
 class StreamManager:
