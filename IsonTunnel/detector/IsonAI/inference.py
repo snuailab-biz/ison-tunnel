@@ -21,7 +21,7 @@ from IsonTunnel.detector import LOGGER
 class IsonPredictor:
     def __init__(self, cfg=DEFAULT_CFG, overrides=None):
         self.args = get_cfg(cfg, overrides)
-        self.args.device=1
+        self.args.device=0
         project = self.args.project or Path(SETTINGS['runs_dir']) / self.args.task
         name = self.args.name or f'{self.args.mode}'
         self.save_dir = increment_path(Path(project) / name, exist_ok=self.args.exist_ok)
