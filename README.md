@@ -1,7 +1,7 @@
 <h1 align="center">ISON: Detector and Tracking<br>Event Generator & Simulator Visualization</h1>
 
 <p align="center">
-  <img src="./assets/ison_logo.png" alt="text" width="number" height="200px" width="600px"/>
+  <img src="/assets/ison_logo.png" alt="text" width="number" height="200px" width="600px"/>
 </p>
 
 <p align="center">
