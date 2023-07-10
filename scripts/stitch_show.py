@@ -2,7 +2,7 @@ import cv2
 
     
 # video_capture = cv2.VideoCapture('rtsp://localhost:1234/test')
-video_capture = cv2.VideoCapture('rtsp://0.0.0.0:1028/video_stream')
+video_capture = cv2.VideoCapture('rtsp://admin:Auto0313!@autodataint.iptime.org:1027/profile3/media.smp')
 
 # 웹캠 설정
 video_capture.set(3, 800)  # 영상 가로길이 설정
