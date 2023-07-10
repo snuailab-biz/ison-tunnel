@@ -24,8 +24,8 @@
 - [x] 📣 Event Generator
 - [x] 📣 RTSP Server
 - [x] 📣 C# 3D Simulator. **highly!**
-- [x] Docker image for ISON Project. 
-- [x] Automatically run at desktop startup
+- [ ] Docker image for ISON Project. 
+- [ ] Automatically run at desktop startup
 - [ ] Release of the ISON Site
 
 ---
